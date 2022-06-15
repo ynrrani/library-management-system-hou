@@ -7,7 +7,6 @@ const nodemailer = require("nodemailer");
 const { nanoid } = require('nanoid')
 
 
-
 // 管理员借阅接口
 router.post('/borrowslist',(req,res)=>{
     conn.query(`select * from borrowinfo`, (err, rs)=>{
@@ -218,6 +217,71 @@ router.post('/auditcomment',(req,res)=>{
 			status:200
 		})
 	}
+	
+})
+// 管理员修改图书信息
+router.post('/changebookinfo',(req,res)=>{
+	let data = req.body
+	console.log(data);
+	let status = data.status
+	switch(status){
+		case '1':{
+			// 修改书名
+			conn.query(`update book set bookName='${data.value}' where bookId='${data.bookId}'`)
+			res.send({
+				status:200,
+				msg:'修改书名成功！'
+			})
+			break;
+		}
+		case '2':{
+			// 修改作者
+			conn.query(`update book set author='${data.value}' where bookId='${data.bookId}'`)
+			res.send({
+				status:200,
+				msg:'修改作者成功！'
+			})
+			break;
+		}
+		case '3':{
+			// 修改位置
+			conn.query(`select * from book where position = '${data.value}'`,(err,rs)=>{
+				if(rs.length > 0){
+					return res.send({
+						msg:'该位置已有书籍存放！',
+						status:0
+					})
+				}else{
+					conn.query(`update book set position='${data.value}' where bookId='${data.bookId}'`)
+					res.send({
+						status:200,
+						msg:'修改位置成功！'
+					})
+				}
+			})
+			break;
+		}
+		case '4':{
+			// 修改库存
+			conn.query(`update book set totalAmount='${data.value}' where bookId='${data.bookId}'`)
+			res.send({
+				status:200,
+				msg:'修改库存成功！'
+			})
+			break;
+		}
+		default:break;
+	}
+})
+// 管理删除图书
+router.post('/delbook',(req,res)=>{
+	let data = req.body
+	console.log(data);
+	conn.query(`delete from book where bookId='${data.bookId}'`)
+	res.send({
+		msg:'删除图书成功',
+		status:200
+	})
 	
 })
 module.exports = router
