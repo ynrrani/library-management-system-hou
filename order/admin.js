@@ -129,7 +129,7 @@ router.post('/adminaddbooks',(req,res)=>{
 				status:0
 			})
 		}else{
-			conn.query(`insert into book values('${nanoid()}','${data.bookName}','${data.author}','${data.amount}','${data.position}','${data.amount}',0)`)
+			conn.query(`insert into book values('${nanoid()}','${data.bookName}','${data.author}','${data.amount}','${data.position}','${data.amount}',0,1)`)
 			res.send({
 				msg:'添加书籍成功！',
 				status:200
@@ -277,7 +277,7 @@ router.post('/changebookinfo',(req,res)=>{
 router.post('/delbook',(req,res)=>{
 	let data = req.body
 	console.log(data);
-	conn.query(`delete from book where bookId='${data.bookId}'`)
+	conn.query(`update book set status=0 where bookId='${data.bookId}'`)
 	res.send({
 		msg:'删除图书成功',
 		status:200
