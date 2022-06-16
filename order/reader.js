@@ -135,7 +135,7 @@ router.post('/register', (req, res) => {
 router.post('/reserve',(req,res)=>{
 	let data = req.body
 	console.log('学生请求预约记录')
-    conn.query(`select reserve.readerId,returnDate,borrowDate,status,book.bookId,author,bookName,date from reserve left join book on reserve.bookId=book.bookId where reserve.readerId = '${data.readerId}'`, (err, rs)=>{
+    conn.query(`select reserve.readerId,returnDate,borrowDate,reserve.status,book.bookId,author,bookName,date from reserve left join book on reserve.bookId=book.bookId where reserve.readerId = '${data.readerId}'`, (err, rs)=>{
 		let data = rs || []
 		if(data.length == 0)
 			res.json({
@@ -200,10 +200,13 @@ router.post('/changereserve',(req,res)=>{
 router.post('/continueborrow',(req,res)=>{
 	let data = req.body
 	console.log(data);
-	conn.query(`update borrow set borrowDate=now(),returnDate=date_add(NOW(), interval 1 month) \
+		//更新借阅表状态 
+	conn.query(`update borrow set borrowDate=now(),returnDate=date_add(NOW(), interval 1 month) 
 	where readerId='${data.readerId}' and bookId = '${data.bookId}' and borrowDate = '${data.borrowDate}'`)
-	conn.query(`update reserve set status = '已借' where bookId='${data.bookId}' 
-	and readerId='${data.readerId}' and date='${data.date}'`)
+		//更新预约表状态 
+	conn.query(`update reserve set status = '已借',borrowDate=now(),returnDate=date_add(NOW(), interval 1 month) 
+	where readerId='${data.readerId}' and bookId = '${data.bookId}' and date='${data.date}'`)
+
 	res.send({
 		msg:'续借成功！',
 		status:200
@@ -233,13 +236,13 @@ router.post('/addborrow',(req,res)=>{
 	console.log('学生借书信息为：',data)
 	// 向借书表中添加数据
 	conn.query(`insert into borrow values('${data.readerId}','${data.bookId}',now(),date_add(NOW(), interval 1 month),'9999-12-31')`)
-	// 书籍表数量-1
-	conn.query(`update book set amount = amount - 1 where bookId='${data.bookId}'`)
-	// 书籍表借阅次数+1
-	conn.query(`update book set borrowedTimes = borrowedTimes + 1 where bookId='${data.bookId}'`)
-	// 用户借阅数量+1
-	conn.query(`update reader set borrowTimes = borrowTimes + 1 where readerId='${data.readerId}'`)
-	// 将预订表的借书时间改为当前时间
+		// 书籍表数量-1
+	// conn.query(`update book set amount = amount - 1 where bookId='${data.bookId}'`)
+		// 书籍表借阅次数+1
+	// conn.query(`update book set borrowedTimes = borrowedTimes + 1 where bookId='${data.bookId}'`)
+		// 用户借阅数量+1
+	// conn.query(`update reader set borrowTimes = borrowTimes + 1 where readerId='${data.readerId}'`)
+		// 将预订表的借书时间改为当前时间
 	conn.query(`update reserve set borrowDate = now() where bookId='${data.bookId}' and readerId='${data.readerId}' and date='${data.date}'`)
 	res.json({
 		msg:'添加借书记录成功！',

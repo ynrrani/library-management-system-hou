@@ -47,7 +47,7 @@ router.post('/initreportlist',(req,res)=>{
 			})
     })
 })
-// 管理员预订接口
+// 管理员获取预订记录接口
 router.post('/reservelist',(req,res)=>{
     conn.query(`select reader.readerId,book.bookId,readerName,bookName,date from reserve left join reader on reserve.readerId=reader.readerId left join book on reserve.bookId=book.bookId`, (err, rs)=>{
 		let data = rs || []
@@ -65,7 +65,7 @@ router.post('/reservelist',(req,res)=>{
        
     })
 })
-// 管理员删除借阅接口
+// 管理员删除借阅记录接口
 router.post('/deleteborrow',(req,res)=>{
 	let data = req.body
     conn.query(`delete from borrow where readerId='${data.readerId}' and bookId='${data.bookId}' and borrowDate='${data.borrowDate}'`)
@@ -118,6 +118,15 @@ router.post('/initreaderlist',(req,res)=>{
 			})
        
     })
+})
+// 管理员删除人员信息
+router.post('/delperson',(req,res)=>{
+	let data = req.body;
+    conn.query(`delete from reader where readerId='${data.readerId}'`)
+	res.send({
+		msg:'删除人员成功！',
+		status:200
+	})
 })
 // 管理员添加图书
 router.post('/adminaddbooks',(req,res)=>{
@@ -282,6 +291,42 @@ router.post('/delbook',(req,res)=>{
 		msg:'删除图书成功',
 		status:200
 	})
+	
+})
+// 管理提醒用户还书
+router.post('/alertperson',(req,res)=>{
+	let data = req.body
+	console.log('提醒还书',data);
+	conn.query(`select email from reader where readerId='${data.readerId}'`,(err,rs)=>{
+		console.log('rs:',rs);
+		var email = rs[0].email
+	console.log('email:',email);
+	let transporter = nodemailer.createTransport({
+		service: 'qq',
+		port: 465,
+		secure: true, 
+		auth: {
+		  user: "2387736781@qq.com", 
+		  pass: "efkhthtfujwqeaeh",
+		},
+	  });
+	let mailobj = {
+		from: '2387736781@qq.com', // sender address
+		to: `${email}`, // list of receivers
+		subject: "举报反馈", // Subject line
+		text: `读者您好，请尽快归还书籍:${data.bookName}！`, // plain text body [与 html 只能有一个]
+		//html: "<b>Hello world?</b>" // html body
+	}
+	transporter.sendMail(mailobj , (err,data) => {
+		// console.log(err) ; 
+		console.log(data) ; 
+	  });
+
+	res.send({
+		msg:'发送成功！',
+		status:200
+	})
+})
 	
 })
 module.exports = router
