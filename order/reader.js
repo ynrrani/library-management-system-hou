@@ -134,8 +134,9 @@ router.post('/register', (req, res) => {
 // 学生请求预约记录接口
 router.post('/reserve',(req,res)=>{
 	let data = req.body
-	console.log('学生请求预约记录')
-    conn.query(`select reserve.readerId,returnDate,borrowDate,reserve.status,book.bookId,author,bookName,date from reserve left join book on reserve.bookId=book.bookId where reserve.readerId = '${data.readerId}'`, (err, rs)=>{
+	// console.log('学生请求预约记录')
+    // conn.query(`select reserve.readerId,reserve.status,book.bookId,author,bookName,date from reserve left join book on reserve.bookId=book.bookId where reserve.readerId = '${data.readerId}'`, (err, rs)=>{
+    conn.query(`select reserve.readerId,book.bookId,reserve.status,author,bookName,date from reserve left join book on reserve.bookId=book.bookId where reserve.readerId = '${data.readerId}'`, (err, rs)=>{
 		let data = rs || []
 		if(data.length == 0)
 			res.json({
@@ -158,14 +159,14 @@ router.post('/addreserve',(req,res)=>{
 		if(err) throw err;
 		rs = rs || []
 		if(rs.length > 0){
-			conn.query(`insert into reserve values('${data.readerId}','${data.bookId}','${data.date}','9999-12-31','9999-12-31','${data.status}')`)
+			conn.query(`insert into reserve values('${data.readerId}','${data.bookId}','${data.date}','${data.status}')`)
 			res.json({
 				msg:'预约成功！',
 				status:200
 			})
 		}else{
 			res.json({
-				msg:'预约失败！',
+				msg:'不好意思，该书当前库存不足！',
 				status:0
 			})
 		}
@@ -184,28 +185,16 @@ router.post('/cancelreserve',(req,res)=>{
 	})
 	
 })
-// 学生修改预约状态接口
-router.post('/changereserve',(req,res)=>{
-	let data = JSON.stringify(req.body)
-	data = JSON.parse(data)
-	console.log('学生修改预约状态：已预约/已借/已还')
-	conn.query(`update reserve set status = '${data.status}' where bookId='${data.bookId}' and readerId='${data.readerId}' and date='${data.date}'`)
-	res.json({
-		msg:'修改预约状态成功！',
-		status:200
-	})
-	
-})
 // 学生续借接口
 router.post('/continueborrow',(req,res)=>{
 	let data = req.body
-	console.log(data);
+	console.log('续借:',data);
 		//更新借阅表状态 
-	conn.query(`update borrow set borrowDate=now(),returnDate=date_add(NOW(), interval 1 month) 
+	conn.query(`update borrow set status='续借',borrowDate=now(),returnDate=date_add(NOW(), interval 1 month) 
 	where readerId='${data.readerId}' and bookId = '${data.bookId}' and borrowDate = '${data.borrowDate}'`)
 		//更新预约表状态 
-	conn.query(`update reserve set status = '已借',borrowDate=now(),returnDate=date_add(NOW(), interval 1 month) 
-	where readerId='${data.readerId}' and bookId = '${data.bookId}' and date='${data.date}'`)
+	// conn.query(`update reserve set status = '已借',borrowDate=now(),returnDate=date_add(NOW(), interval 1 month) 
+	// where readerId='${data.readerId}' and bookId = '${data.bookId}' and date='${data.date}'`)
 
 	res.send({
 		msg:'续借成功！',
@@ -215,7 +204,7 @@ router.post('/continueborrow',(req,res)=>{
 // 学生请求借阅记录接口
 router.post('/borrows',(req,res)=>{
 	let data = req.body
-    conn.query(`select bookName,borrowDate,returnDate,realDate from borrow left join book on borrow.bookId=book.bookId where borrow.readerId in (select readerId from reader where phone = ${data.id})`, (err, rs)=>{
+    conn.query(`select readerId,borrow.bookId,borrow.status,book.author,bookName,borrowDate,returnDate,realDate from borrow left join book on borrow.bookId=book.bookId where borrow.readerId in (select readerId from reader where readerId = '${data.readerId}')`, (err, rs)=>{
 		let data = rs || []
 		if(data.length == 0)
 			res.json({
@@ -235,7 +224,7 @@ router.post('/addborrow',(req,res)=>{
 	let data = req.body
 	console.log('学生借书信息为：',data)
 	// 向借书表中添加数据
-	conn.query(`insert into borrow values('${data.readerId}','${data.bookId}',now(),date_add(NOW(), interval 1 month),'9999-12-31')`)
+	conn.query(`insert into borrow values('${data.readerId}','${data.bookId}',now(),date_add(NOW(), interval 1 month),'9999-12-31','未还')`)
 		// 书籍表数量-1
 	// conn.query(`update book set amount = amount - 1 where bookId='${data.bookId}'`)
 		// 书籍表借阅次数+1
@@ -243,7 +232,8 @@ router.post('/addborrow',(req,res)=>{
 		// 用户借阅数量+1
 	// conn.query(`update reader set borrowTimes = borrowTimes + 1 where readerId='${data.readerId}'`)
 		// 将预订表的借书时间改为当前时间
-	conn.query(`update reserve set borrowDate = now() where bookId='${data.bookId}' and readerId='${data.readerId}' and date='${data.date}'`)
+	// conn.query(`update reserve set borrowDate = now() where bookId='${data.bookId}' and readerId='${data.readerId}' and date='${data.date}'`)
+	conn.query(`update reserve set status='已借阅' where bookId='${data.bookId}' and readerId='${data.readerId}' and date='${data.date}'`)
 	res.json({
 		msg:'添加借书记录成功！',
 		status:200
@@ -251,10 +241,14 @@ router.post('/addborrow',(req,res)=>{
 	
 })
 // 学生还书接口
-router.post('/changeborrow',(req,res)=>{
+router.post('/returnbook',(req,res)=>{
 	let data = req.body
 	console.log('学生还书：',data)
-	conn.query(`update borrow set realDate = sysDate() where bookId='${data.bookId}' and readerId='${data.readerId}' and borrowDate='${data.borrowDate}'`)
+	// 书籍表数量加1
+	conn.query(`update book set amount = amount + 1 where bookId='${data.bookId}'`)
+	// 重新设置真正的还书日期
+	conn.query(`update borrow set status='已还',realDate = sysDate() where bookId='${data.bookId}' and readerId='${data.readerId}' and borrowDate='${data.borrowDate}'`)
+	// 时间戳比较
 	conn.query(`select unix_timestamp(returnDate) as returnDate from borrow where bookId='${data.bookId}' and readerId='${data.readerId}' and borrowDate='${data.borrowDate}'`,(err,rs)=>{
 		if(rs.length > 0){
 			let realDate = new Date(data.date).getTime()/1000;
@@ -262,18 +256,26 @@ router.post('/changeborrow',(req,res)=>{
 			if(realDate > returnDate){
 				// 用户逾期记录+1
 				conn.query(`update reader set ovdTimes = ovdTimes + 1 where readerId='${data.readerId}'`)
+				res.json({
+					msg:'还书成功，您已逾期！',
+					status:100
+				})
+			}else{
+				res.json({
+					msg:'还书成功！',
+					status:200
+				})
 			}
+		}else{
+			res.json({
+				msg:'还书失败！',
+				status:0
+			})
 		}
 		
 	})
-	// 书籍表数量加1
-	conn.query(`update book set amount = amount + 1 where bookId='${data.bookId}'`)
-	// 修改预订表的还书时间
-	conn.query(`update reserve set returnDate = now() where bookId='${data.bookId}' and readerId='${data.readerId}' and date='${data.date}'`)
-	res.json({
-		msg:'还书成功！',
-		status:200
-	})
+
+
 	
 })
 // 学生举报接口

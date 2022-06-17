@@ -160,6 +160,7 @@ router.post('/auditcomment',(req,res)=>{
 		  pass: "efkhthtfujwqeaeh",
 		},
 	  });
+	//   管理员自行删除评论
 	 if(data.status == 3){
 		conn.query(`update comment set status=0 where readerId='${data.readerId}' and bookId='${data.bookId}' and date='${data.date}'`)
 		res.send({
@@ -271,11 +272,13 @@ router.post('/changebookinfo',(req,res)=>{
 			break;
 		}
 		case '4':{
-			// 修改库存
-			conn.query(`update book set totalAmount='${data.value}' where bookId='${data.bookId}'`)
+			// 修改当前库存
+			conn.query(`update book set amount='${data.value}' where bookId='${data.bookId}'`)
+			// 修改总库存
+			conn.query(`update book set totalAmount=totalAmount + '${data.difference}' where bookId='${data.bookId}'`)
 			res.send({
 				status:200,
-				msg:'修改库存成功！'
+				msg:'修改当前库存成功！'
 			})
 			break;
 		}
