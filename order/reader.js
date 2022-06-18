@@ -39,7 +39,8 @@ router.post('/initreader',(req,res)=>{
 // 学生获取举报记录接口
 router.post('/initstureport',(req,res)=>{
 	let data = req.body;
-	conn.query(`select status,commentId,reporterId,reportdate,a.readerId,a.readerName,bookId,bookName,
+	conn.query(`select status,commentId,reporterId,reportdate,a.readerId,
+		a.readerName,bookId,bookName,
 	date,content,b.readerName as reporterName from reportInfo a left join reader b 
 	on a.reporterId=b.readerId where b.readerId='${data.readerId}'`,(err,rs)=>{
 		rs = rs || []
@@ -135,8 +136,8 @@ router.post('/register', (req, res) => {
 router.post('/reserve',(req,res)=>{
 	let data = req.body
 	// console.log('学生请求预约记录')
-    // conn.query(`select reserve.readerId,reserve.status,book.bookId,author,bookName,date from reserve left join book on reserve.bookId=book.bookId where reserve.readerId = '${data.readerId}'`, (err, rs)=>{
-    conn.query(`select reserve.readerId,book.bookId,reserve.status,author,bookName,date from reserve left join book on reserve.bookId=book.bookId where reserve.readerId = '${data.readerId}'`, (err, rs)=>{
+    conn.query(`select reserve.readerId,book.bookId,reserve.status,author,bookName,date from reserve 
+    	left join book on reserve.bookId=book.bookId where reserve.readerId = '${data.readerId}'`, (err, rs)=>{
 		let data = rs || []
 		if(data.length == 0)
 			res.json({
@@ -159,7 +160,8 @@ router.post('/addreserve',(req,res)=>{
 		if(err) throw err;
 		rs = rs || []
 		if(rs.length > 0){
-			conn.query(`insert into reserve values('${data.readerId}','${data.bookId}','${data.date}','${data.status}')`)
+			conn.query(`insert into reserve values('${data.readerId}',
+				'${data.bookId}','${data.date}','${data.status}')`)
 			res.json({
 				msg:'预约成功！',
 				status:200
@@ -171,19 +173,17 @@ router.post('/addreserve',(req,res)=>{
 			})
 		}
 	})
-	
-	
 })
-// 学生删除预约记录接口
+// 删除预约记录接口
 router.post('/cancelreserve',(req,res)=>{
 	let data = req.body
 	console.log('学生取消预约记录')
-	conn.query(`delete from reserve where bookId='${data.bookId}' and readerId='${data.readerId}' and date='${data.date}'`)
+	conn.query(`delete from reserve where bookId='${data.bookId}' 
+		and readerId='${data.readerId}' and date='${data.date}'`)
 	res.json({
 		msg:'取消预约成功！',
 		status:200
 	})
-	
 })
 // 学生续借接口
 router.post('/continueborrow',(req,res)=>{
@@ -238,7 +238,6 @@ router.post('/addborrow',(req,res)=>{
 		msg:'添加借书记录成功！',
 		status:200
 	})
-	
 })
 // 学生还书接口
 router.post('/returnbook',(req,res)=>{
@@ -273,16 +272,14 @@ router.post('/returnbook',(req,res)=>{
 			})
 		}
 		
-	})
-
-
-	
+	})	
 })
 // 学生举报接口
 router.post('/reportcomment',(req,res)=>{
 	let data = req.body
 	console.log(data)
-	conn.query(`insert into report values('${data.commentId}','${data.reporterId}',now(),'审核中')`)
+	conn.query(`insert into report values('${data.commentId}',
+		'${data.reporterId}',now(),'审核中')`)
 	res.send({
 		msg:'举报成功！',
 		status:200
