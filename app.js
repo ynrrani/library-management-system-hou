@@ -185,6 +185,29 @@ app.post('/searchbook',(req,res)=>{
 	})
 })
 
+// 获取评论最多的人员
+app.post('/amountmax',(req,res)=>{
+  conn.query(`select count(*) as amount,readerName from reader left join comment on reader.readerId=comment.readerId GROUP BY reader.readerId ORDER BY amount desc limit 1`,(err,rs)=>{
+    rs = rs || []
+    res.send({
+      status:200,
+      msg:'请求成功！',
+      data:rs
+    })
+  })
+})
+// 获取评论数量
+app.post('/amount',(req,res)=>{
+  conn.query(`select count(*) as mytotal from comment`,(err,rs)=>{
+    rs = rs || []
+    res.send({
+      status:200,
+      msg:'请求成功！',
+      data:rs
+    })
+  })
+})
+
 // 端口监听
 app.listen(8080, (err) => {
   if (!err) console.log('服务器启动成功!');

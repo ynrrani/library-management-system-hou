@@ -4,7 +4,7 @@ const mysql = require('mysql');
 var connection = mysql.createConnection({
   host: 'localhost',
   user: 'root',
-  password: '778102',
+  password: 'xxxxxxx',//改自己的密码
   database: 'library',
   timezone:"08:00"
 })
