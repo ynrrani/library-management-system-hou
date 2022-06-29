@@ -13,13 +13,14 @@ app.use(reader)
 
 // 公共接口
 
-
+console.log(conn);
 // 登录接口
 app.post('/login', (req, res) => {
   let data = req.body;
   data = JSON.stringify(data)
   data = JSON.parse(data)
   console.log("登录接收的数据",data);
+
 
   // 判断接收数据是否为空
   if (!data) {
