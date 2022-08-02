@@ -155,7 +155,7 @@ router.post('/adminaddbooks',(req,res)=>{
 // 管理员修改图书信息
 router.post('/changebookinfo',(req,res)=>{
 	let data = req.body
-	console.log(data);
+	// console.log(data);
 	let status = data.status
 	switch(status){
 		case '1':{
@@ -211,7 +211,7 @@ router.post('/changebookinfo',(req,res)=>{
 // 管理删除图书
 router.post('/delbook',(req,res)=>{
 	let data = req.body
-	console.log(data);
+	// console.log(data);
 	conn.query(`update book set status=0 where bookId='${data.bookId}'`)
 	res.send({
 		msg:'删除图书成功',
@@ -221,22 +221,22 @@ router.post('/delbook',(req,res)=>{
 // 管理提醒用户还书
 router.post('/alertperson',(req,res)=>{
 	let data = req.body
-	console.log('提醒还书',data);
+	// console.log('提醒还书',data);
 	conn.query(`select email from reader where readerId='${data.readerId}'`,(err,rs)=>{
 		console.log('rs:',rs);
 		var email = rs[0].email
-	console.log('email:',email);
+	// console.log('email:',email);
 	let transporter = nodemailer.createTransport({
 		service: 'qq',
 		port: 465,
 		secure: true, 
 		auth: {
-		  user: "2387736781@qq.com", 
-		  pass: "efkhthtfujwqeaeh",
+		  user: "yourEmail", 
+		  pass: "",//授权码
 		},
 	  });
 	let mailobj = {
-		from: '2387736781@qq.com', // sender address
+		from: 'yourEmail', // sender address
 		to: `${email}`, // list of receivers
 		subject: "举报反馈", // Subject line
 		text: `读者您好，请尽快归还书籍:${data.bookName}！`, // plain text body [与 html 只能有一个]
@@ -258,14 +258,14 @@ router.post('/alertperson',(req,res)=>{
 // 管理员审核举报接口
 router.post('/auditcomment',(req,res)=>{
 	let data = req.body
-	console.log('举报',data)
+	// console.log('举报',data)
 	let transporter = nodemailer.createTransport({
 		service: 'qq',
 		port: 465,
 		secure: true, 
 		auth: {
-		  user: "2387736781@qq.com", 
-		  pass: "efkhthtfujwqeaeh",//授权码
+		  user: "yourEmail", 
+		  pass: "",//授权码
 		},
 	  });
 	//   管理员自行删除评论
@@ -282,7 +282,7 @@ router.post('/auditcomment',(req,res)=>{
 		conn.query(`update report set status='已通过' where commentId='${data.commentId}' and reporterId='${data.reporterId}' and reportdate='${data.reportdate}'`)
 		 // 邮件信息
 		 let mailobj = {
-			from: '2387736781@qq.com', // sender address
+			from: 'yourEmail', // sender address
 			to: `${data.email}`, // list of receivers
 			subject: "举报成功！", // Subject line
 			text: "我们已经对该用户的不良行为进行处理，感谢您对社区做出的贡献！", // plain text body [与 html 只能有一个]
@@ -299,7 +299,7 @@ router.post('/auditcomment',(req,res)=>{
 			if(rs.length > 0){
 				var email = rs[0].email;
 				var mailobj2 = {
-					from: '2387736781@qq.com', // sender address
+					from: 'yourEmail', // sender address
 					to: `${email}`, // list of receivers
 					subject: "警告！", // Subject line
 					text: "我们收到用户对您的举报，希望您能遵守秩序，文明用语！", // plain text body [与 html 只能有一个]
@@ -320,7 +320,7 @@ router.post('/auditcomment',(req,res)=>{
 		conn.query(`update report set status='已驳回' where commentId='${data.commentId}' and reporterId='${data.reporterId}' and reportdate='${data.reportdate}'`)
 		 // 邮件信息
 		 let mailobj = {
-			from: '2387736781@qq.com', // sender address
+			from: 'yourEmail', // sender address
 			to: `${data.email}`, // list of receivers
 			subject: "举报反馈", // Subject line
 			text: "我们暂无检测到该用户的不良行为，感谢您为保护社区环境做出的贡献！", // plain text body [与 html 只能有一个]
