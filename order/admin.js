@@ -11,7 +11,6 @@ const { nanoid } = require('nanoid')
 router.post('/borrowslist',(req,res)=>{
     conn.query(`select * from borrowinfo`, (err, rs)=>{
 		let data = rs || []
-		console.log(data)
 		if(data.length == 0)
 			res.json({
 			  msg:'管理员请求借阅记录为空',
@@ -33,7 +32,6 @@ router.post('/initreportlist',(req,res)=>{
 	date,content,b.readerName as reporterName from reportInfo a left join reader b 
 	on a.reporterId=b.readerId`, (err, rs)=>{
 		let data = rs || []
-		// console.log(data)
 		if(data.length == 0)
 			res.json({
 			  msg:'管理员请求举报记录为空',
@@ -81,7 +79,6 @@ router.post('/deleteborrow',(req,res)=>{
 // 管理员通过名称查询借阅信息
 router.post('/searchborrow',(req,res)=>{
 	let data = req.body;
-	// console.log('姓名/书名',data.info);
 	conn.query(`select * from borrowinfo where borrowinfo.readerName='${data.info}'`,(err,reader)=>{
 		reader = reader || []
 		conn.query(`select * from borrowinfo where borrowinfo.bookName like '%${data.info}%'`,(err,book)=>{
@@ -155,7 +152,6 @@ router.post('/adminaddbooks',(req,res)=>{
 // 管理员修改图书信息
 router.post('/changebookinfo',(req,res)=>{
 	let data = req.body
-	// console.log(data);
 	let status = data.status
 	switch(status){
 		case '1':{
@@ -211,7 +207,6 @@ router.post('/changebookinfo',(req,res)=>{
 // 管理删除图书
 router.post('/delbook',(req,res)=>{
 	let data = req.body
-	// console.log(data);
 	conn.query(`update book set status=0 where bookId='${data.bookId}'`)
 	res.send({
 		msg:'删除图书成功',
@@ -221,29 +216,26 @@ router.post('/delbook',(req,res)=>{
 // 管理提醒用户还书
 router.post('/alertperson',(req,res)=>{
 	let data = req.body
-	// console.log('提醒还书',data);
 	conn.query(`select email from reader where readerId='${data.readerId}'`,(err,rs)=>{
 		console.log('rs:',rs);
 		var email = rs[0].email
-	// console.log('email:',email);
 	let transporter = nodemailer.createTransport({
 		service: 'qq',
 		port: 465,
 		secure: true, 
 		auth: {
-		  user: "yourEmail", 
-		  pass: "",//授权码
+		  user: "你的邮箱", 
+		  pass: "邮箱授权码",//授权码
 		},
 	  });
 	let mailobj = {
-		from: 'yourEmail', // sender address
+		from: '你的邮箱', // sender address
 		to: `${email}`, // list of receivers
 		subject: "举报反馈", // Subject line
 		text: `读者您好，请尽快归还书籍:${data.bookName}！`, // plain text body [与 html 只能有一个]
 		//html: "<b>Hello world?</b>" // html body
 	}
 	transporter.sendMail(mailobj , (err,data) => {
-		// console.log(err) ; 
 		console.log(data) ; 
 	  });
 
@@ -258,14 +250,13 @@ router.post('/alertperson',(req,res)=>{
 // 管理员审核举报接口
 router.post('/auditcomment',(req,res)=>{
 	let data = req.body
-	// console.log('举报',data)
 	let transporter = nodemailer.createTransport({
 		service: 'qq',
 		port: 465,
 		secure: true, 
 		auth: {
-		  user: "yourEmail", 
-		  pass: "",//授权码
+		  user: "你的邮箱", 
+		  pass: "邮箱授权码",//授权码
 		},
 	  });
 	//   管理员自行删除评论
@@ -282,31 +273,28 @@ router.post('/auditcomment',(req,res)=>{
 		conn.query(`update report set status='已通过' where commentId='${data.commentId}' and reporterId='${data.reporterId}' and reportdate='${data.reportdate}'`)
 		 // 邮件信息
 		 let mailobj = {
-			from: 'yourEmail', // sender address
+			from: '你的邮箱', // sender address
 			to: `${data.email}`, // list of receivers
 			subject: "举报成功！", // Subject line
 			text: "我们已经对该用户的不良行为进行处理，感谢您对社区做出的贡献！", // plain text body [与 html 只能有一个]
 			//html: "<b>Hello world?</b>" // html body
 		}
 		transporter.sendMail(mailobj , (err,data) => {
-			// console.log(err) ; 
 			console.log(data) ; 
 		  });
 		  conn.query(`select email from reader where readerId='${data.readerId}'`,(err,rs)=>{
 			if(err) throw err;
 			rs = rs || []
-			console.log('12312',rs);
 			if(rs.length > 0){
 				var email = rs[0].email;
 				var mailobj2 = {
-					from: 'yourEmail', // sender address
+					from: '你的邮箱', // sender address
 					to: `${email}`, // list of receivers
 					subject: "警告！", // Subject line
 					text: "我们收到用户对您的举报，希望您能遵守秩序，文明用语！", // plain text body [与 html 只能有一个]
 					//html: "<b>Hello world?</b>" // html body
 				}
 				transporter.sendMail(mailobj2 , (err,data) => {
-					// console.log(err) ; 
 					console.log(data) ; 
 				  });
 			}
@@ -320,14 +308,13 @@ router.post('/auditcomment',(req,res)=>{
 		conn.query(`update report set status='已驳回' where commentId='${data.commentId}' and reporterId='${data.reporterId}' and reportdate='${data.reportdate}'`)
 		 // 邮件信息
 		 let mailobj = {
-			from: 'yourEmail', // sender address
+			from: '你的邮箱', // sender address
 			to: `${data.email}`, // list of receivers
 			subject: "举报反馈", // Subject line
 			text: "我们暂无检测到该用户的不良行为，感谢您为保护社区环境做出的贡献！", // plain text body [与 html 只能有一个]
 			//html: "<b>Hello world?</b>" // html body
 		}
 		transporter.sendMail(mailobj , (err,data) => {
-			// console.log(err) ; 
 			console.log(data) ; 
 		  });
 	
