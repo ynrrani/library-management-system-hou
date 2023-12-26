@@ -59,7 +59,7 @@ router.post('/initstureport',(req,res)=>{
 router.post('/register', (req, res) => {
     let data = req.body;
     console.log("注册接收的数据",data);
-  
+
     if (!data) {
       res.json({
         msg: '没有提交数据！',
@@ -139,7 +139,7 @@ router.post('/reserve',(req,res)=>{
     conn.query(`select reserve.readerId,book.bookId,reserve.status,author,bookName,date from reserve 
     	left join book on reserve.bookId=book.bookId where reserve.readerId = '${data.readerId}'`, (err, rs)=>{
 		let data = rs || []
-		if(data.length == 0)
+		if(data.length === 0)
 			res.json({
 			  msg:'读者请求预订记录为空',
 			  status:0,
@@ -189,11 +189,11 @@ router.post('/cancelreserve',(req,res)=>{
 router.post('/continueborrow',(req,res)=>{
 	let data = req.body
 	console.log('续借:',data);
-		//更新借阅表状态 
+		//更新借阅表状态
 	conn.query(`update borrow set status='续借',borrowDate=now(),returnDate=date_add(NOW(), interval 1 month) 
 	where readerId='${data.readerId}' and bookId = '${data.bookId}' and borrowDate = '${data.borrowDate}'`)
-		//更新预约表状态 
-	// conn.query(`update reserve set status = '已借',borrowDate=now(),returnDate=date_add(NOW(), interval 1 month) 
+		//更新预约表状态
+	// conn.query(`update reserve set status = '已借',borrowDate=now(),returnDate=date_add(NOW(), interval 1 month)
 	// where readerId='${data.readerId}' and bookId = '${data.bookId}' and date='${data.date}'`)
 
 	res.send({
@@ -271,8 +271,8 @@ router.post('/returnbook',(req,res)=>{
 				status:0
 			})
 		}
-		
-	})	
+
+	})
 })
 // 学生举报接口
 router.post('/reportcomment',(req,res)=>{

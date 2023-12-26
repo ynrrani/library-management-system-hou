@@ -1,6 +1,6 @@
 Ⅰ、npm install 安装依赖
 
-Ⅱ、node app 启动程序
+Ⅱ、npm run dev 启动程序
 
 注意：
 

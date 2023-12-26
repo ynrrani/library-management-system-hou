@@ -1,4 +1,4 @@
-const mysql = require('mysql');
+const mysql = require('mysql2');
 
 // 创建数据库连接对象
 var connection = mysql.createPool({
